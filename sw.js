@@ -1,4 +1,4 @@
-const CACHE = 'menu-planner-v1';
+const CACHE = 'menu-planner-v2';
 const ASSETS = [
   './',
   './Recipe App Prototype.html',
