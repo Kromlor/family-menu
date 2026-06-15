@@ -985,7 +985,7 @@ Rules: 8–14 ingredients, realistic amounts, correct category, 5–8 clear cook
       const meals = (data.meals || []).map(parseMealDB);
       renderPickerResults(meals, 'internet', q);
     } catch(e) {
-      el.innerHTML = `<div class="empty-state"><div class="ei">😔</div><h3>No internet connection</h3><p>Try ✨ AI instead.</p></div>`;
+      el.innerHTML = `<div class="empty-state"><div class="ei">😔</div><h3>Internet search failed</h3><p style="font-size:11px;word-break:break-all">${e.message}</p></div>`;
     }
   }
 }
