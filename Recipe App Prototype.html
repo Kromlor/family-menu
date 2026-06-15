@@ -240,6 +240,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
 .book-recipe-tab.active { background: #fff; color: var(--green-dark); border-left: 3px solid var(--green-dark); padding-left: 15px; }
 .book-recipe-tab .rec-dot { width: 6px; height: 6px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
 .book-recipe-tab.active .rec-dot { background: var(--green-dark); }
+.move-cat-btn { font-size:16px; color:#bbb; padding:0 2px; line-height:1; flex-shrink:0; }
 
 /* Middle + Right panes */
 .book-ingredients {
@@ -269,13 +270,39 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
 }
 .book-pane-meta { font-size: 11px; color: rgba(255,255,255,0.65); margin-top: 3px; }
 .book-ingredient {
-  display: flex; justify-content: space-between; align-items: center;
+  display: flex; flex-wrap: wrap;
   padding: 11px 16px; border-bottom: 1px solid var(--border);
   font-size: 14px; background: #fff;
 }
 .book-ingredient:last-child { border-bottom: none; }
+.book-ing-main { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; }
 .book-ing-name   { font-weight: 600; }
-.book-ing-amount { color: var(--text-mid); font-size: 12px; text-align: right; max-width: 90px; }
+.book-ing-amount { color: var(--text-mid); font-size: 12px; text-align: right; }
+.book-ing-sub-label { font-size: 11px; color: #9B59B6; font-weight: 700; margin-top: 3px; }
+.book-sub-btn {
+  background: none; border: 1px solid #ddd; border-radius: 8px;
+  padding: 3px 8px; font-size: 11px; font-weight: 700;
+  color: #9B59B6; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+}
+.book-sub-btn:active { background: #f3e5f5; }
+.book-ing-sub-row {
+  width: 100%; display: flex; gap: 6px; margin-top: 8px; padding-top: 8px;
+  border-top: 1px dashed #ddd;
+}
+.book-sub-input {
+  flex: 1; font-size: 14px; padding: 8px 10px;
+  border: 2px solid #9B59B6; border-radius: 10px; outline: none;
+  font-family: inherit;
+}
+.book-sub-save {
+  background: #9B59B6; color: #fff; border: none;
+  border-radius: 10px; padding: 8px 13px; font-size: 13px;
+  font-weight: 700; cursor: pointer;
+}
+.book-sub-clear {
+  background: none; border: 2px solid #ddd; color: var(--text-mid);
+  border-radius: 10px; padding: 8px 10px; font-size: 13px; cursor: pointer;
+}
 .book-step {
   display: flex; gap: 14px; padding: 16px 18px;
   border-bottom: 1px solid var(--border); align-items: flex-start;
@@ -487,6 +514,164 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
   .week-wrap, .grocery-wrap, .saved-wrap, .recipes-wrap { max-width: 600px; margin: 0 auto; }
   .picker-sheet { max-width: 600px; margin: 0 auto; }
 }
+
+/* ── ADD RECIPE OVERLAY ── */
+.add-recipe-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45); z-index: 250; align-items: flex-end;
+}
+.add-recipe-overlay.open { display: flex; }
+.add-recipe-sheet {
+  background: #fff; width: 100%; border-radius: 20px 20px 0 0;
+  max-height: 92vh; display: flex; flex-direction: column;
+  animation: slideUp 0.25s ease;
+}
+.ar-header {
+  background: var(--green-dark); color: #fff;
+  padding: 16px 18px 14px; display: flex; align-items: center; gap: 10px;
+  border-radius: 20px 20px 0 0; flex-shrink: 0;
+}
+.ar-title { font-size: 17px; font-weight: 800; flex: 1; }
+.ar-close {
+  background: rgba(255,255,255,0.2); border: none; color: #fff;
+  border-radius: 50%; width: 32px; height: 32px; font-size: 16px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.ar-body { overflow-y: auto; padding: 16px; flex: 1; }
+.ar-field { margin-bottom: 16px; }
+.ar-label {
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.7px; color: var(--green-mid); margin-bottom: 6px; display: block;
+}
+.ar-input {
+  width: 100%; padding: 11px 14px; border: 2px solid var(--border);
+  border-radius: 12px; font-size: 15px; outline: none; font-family: inherit;
+  background: var(--green-pale); color: var(--text);
+}
+.ar-input:focus { border-color: var(--green-mid); background: #fff; }
+.ar-select {
+  width: 100%; padding: 11px 14px; border: 2px solid var(--border);
+  border-radius: 12px; font-size: 15px; outline: none; font-family: inherit;
+  background: var(--green-pale); color: var(--text); appearance: none;
+}
+.ar-select:focus { border-color: var(--green-mid); background: #fff; }
+.ar-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.emoji-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.emoji-opt {
+  font-size: 22px; cursor: pointer; padding: 6px 7px; border-radius: 10px;
+  border: 2px solid transparent; line-height: 1; background: var(--green-pale);
+  transition: all 0.1s;
+}
+.emoji-opt.selected { border-color: var(--green-mid); background: var(--green-light); }
+.ar-section-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.ar-row { display: flex; gap: 6px; align-items: flex-start; margin-bottom: 7px; }
+.ar-ing-name {
+  flex: 2; padding: 9px 11px; border: 2px solid var(--border);
+  border-radius: 10px; font-size: 14px; outline: none; font-family: inherit;
+  background: var(--green-pale);
+}
+.ar-ing-name:focus { border-color: var(--green-mid); background: #fff; }
+.ar-ing-amount {
+  flex: 1; padding: 9px 8px; border: 2px solid var(--border);
+  border-radius: 10px; font-size: 13px; outline: none; font-family: inherit;
+  background: var(--green-pale); min-width: 0;
+}
+.ar-ing-amount:focus { border-color: var(--green-mid); background: #fff; }
+.ar-ing-cat {
+  flex: 1; padding: 9px 6px; border: 2px solid var(--border);
+  border-radius: 10px; font-size: 12px; outline: none; font-family: inherit;
+  background: var(--green-pale); appearance: none; min-width: 0; text-align: center;
+}
+.ar-ing-cat:focus { border-color: var(--green-mid); background: #fff; }
+.ar-del-btn {
+  background: none; border: 2px solid #ddd; border-radius: 10px;
+  padding: 8px 9px; font-size: 13px; cursor: pointer; color: #bbb;
+  flex-shrink: 0; line-height: 1;
+}
+.ar-del-btn:active { border-color: #fbb; color: #c00; background: #fff5f5; }
+.ar-add-btn {
+  display: block; width: 100%; padding: 10px; border: 2px dashed var(--green-mid);
+  border-radius: 12px; background: var(--green-pale); color: var(--green-mid);
+  font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 4px;
+  font-family: inherit;
+}
+.ar-step-input {
+  flex: 1; padding: 10px 12px; border: 2px solid var(--border);
+  border-radius: 10px; font-size: 14px; outline: none; font-family: inherit;
+  resize: none; min-height: 58px; line-height: 1.5; background: var(--green-pale);
+}
+.ar-step-input:focus { border-color: var(--green-mid); background: #fff; }
+.ar-footer { padding: 12px 16px 28px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.ar-save-btn {
+  display: block; width: 100%; padding: 15px;
+  background: var(--green-dark); color: #fff; border: none;
+  border-radius: 14px; font-size: 16px; font-weight: 800;
+  cursor: pointer; font-family: inherit;
+}
+.ar-save-btn:active { opacity: 0.85; }
+
+/* ── IMPORT BAR ── */
+.ar-import-bar {
+  display: flex; gap: 8px; margin-bottom: 16px;
+}
+.ar-import-btn {
+  flex: 1; padding: 11px 8px; border: 2px solid var(--green-mid);
+  border-radius: 12px; background: var(--green-pale); color: var(--green-dark);
+  font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit;
+  transition: background 0.12s;
+}
+.ar-import-btn:active { background: var(--green-light); }
+.ar-import-section {
+  background: var(--green-pale); border-radius: 14px;
+  border: 2px solid var(--border); padding: 12px; margin-bottom: 16px;
+  display: none;
+}
+.ar-import-section.vis { display: block; }
+.ar-paste-area {
+  width: 100%; min-height: 110px; padding: 10px 12px;
+  border: 2px solid var(--border); border-radius: 10px;
+  font-size: 14px; font-family: inherit; outline: none;
+  resize: none; line-height: 1.5; background: #fff;
+}
+.ar-paste-area:focus { border-color: var(--green-mid); }
+.ar-photo-preview {
+  width: 100%; border-radius: 10px; object-fit: cover;
+  max-height: 180px; display: block; margin-bottom: 10px;
+}
+.ar-extract-btn {
+  display: block; width: 100%; padding: 11px;
+  background: var(--green-dark); color: #fff; border: none;
+  border-radius: 12px; font-size: 14px; font-weight: 700;
+  cursor: pointer; font-family: inherit; margin-top: 8px;
+}
+.ar-extract-btn:active { opacity: 0.85; }
+.ar-parse-status {
+  text-align: center; padding: 10px 0 4px;
+  font-size: 13px; color: var(--green-mid); font-weight: 600;
+  min-height: 28px;
+}
+.ar-divider {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+}
+.ar-divider::before, .ar-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.ar-divider span { font-size: 11px; color: var(--text-mid); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ── FLOATING ACTION BUTTON ── */
+.fab {
+  position: fixed; bottom: 90px; right: 18px;
+  width: 54px; height: 54px; border-radius: 50%;
+  background: var(--green-dark); color: #fff; border: none;
+  font-size: 28px; cursor: pointer; box-shadow: 0 4px 18px rgba(0,0,0,0.28);
+  display: none; align-items: center; justify-content: center; z-index: 90;
+  transition: transform 0.15s; line-height: 1;
+}
+.fab.vis { display: flex; }
+.fab:active { transform: scale(0.92); }
 </style>
 </head>
 <body>
@@ -573,6 +758,96 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- FLOATING ADD RECIPE BUTTON -->
+<button class="fab" id="addRecipeFab" onclick="openAddRecipe()" title="Add your own recipe">+</button>
+
+<!-- ADD RECIPE OVERLAY -->
+<div class="add-recipe-overlay" id="addRecipeOverlay" onclick="closeAddRecipe(event)">
+  <div class="add-recipe-sheet">
+    <div class="ar-header">
+      <div class="ar-title">✍️ Create a Recipe</div>
+      <button class="ar-close" onclick="closeAddRecipe()">✕</button>
+    </div>
+    <div class="ar-body" id="arBody">
+
+      <!-- Import options -->
+      <div class="ar-import-bar">
+        <button class="ar-import-btn" onclick="triggerPhotoUpload()">📷 Scan a Photo</button>
+        <button class="ar-import-btn" onclick="togglePasteInput()">📋 Paste Text</button>
+      </div>
+      <input type="file" id="arPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoUpload(this)">
+
+      <!-- Import section (photo preview OR paste area) -->
+      <div class="ar-import-section" id="arImportSection">
+        <!-- filled by JS -->
+      </div>
+      <div class="ar-parse-status" id="arParseStatus"></div>
+
+      <div class="ar-divider"><span>or fill in manually</span></div>
+
+      <!-- Name -->
+      <div class="ar-field">
+        <label class="ar-label">Recipe Name *</label>
+        <input class="ar-input" id="arName" type="text" placeholder="e.g. Mum's Chicken Soup" autocomplete="off">
+      </div>
+
+      <!-- Emoji + Time + Category -->
+      <div class="ar-two-col">
+        <div class="ar-field">
+          <label class="ar-label">Prep Time</label>
+          <input class="ar-input" id="arTime" type="text" placeholder="e.g. 30 min">
+        </div>
+        <div class="ar-field">
+          <label class="ar-label">Category</label>
+          <select class="ar-select" id="arCat">
+            <option value="breakfast">🌅 Breakfast</option>
+            <option value="lunch">🥗 Lunch</option>
+            <option value="dinner" selected>🍽 Dinner</option>
+            <option value="dessert">🍰 Dessert</option>
+            <option value="other">📦 Other</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Emoji -->
+      <div class="ar-field">
+        <label class="ar-label">Emoji</label>
+        <div class="emoji-grid" id="arEmojiGrid">
+          <!-- populated by JS -->
+        </div>
+      </div>
+
+      <!-- Ingredients -->
+      <div class="ar-field">
+        <div class="ar-section-hdr">
+          <label class="ar-label" style="margin-bottom:0">Ingredients</label>
+          <span style="font-size:11px;color:var(--text-mid)">name · amount · type</span>
+        </div>
+        <div id="arIngredients">
+          <!-- rows added by JS -->
+        </div>
+        <button class="ar-add-btn" onclick="addIngredientRow()">+ Add Ingredient</button>
+      </div>
+
+      <!-- Steps -->
+      <div class="ar-field">
+        <div class="ar-section-hdr">
+          <label class="ar-label" style="margin-bottom:0">Steps</label>
+          <span style="font-size:11px;color:var(--text-mid)">optional</span>
+        </div>
+        <div id="arSteps">
+          <!-- rows added by JS -->
+        </div>
+        <button class="ar-add-btn" onclick="addStepRow()">+ Add Step</button>
+      </div>
+
+    </div><!-- /ar-body -->
+    <div class="ar-footer">
+      <button class="ar-save-btn" onclick="saveCustomRecipe()">Save Recipe ✓</button>
+    </div>
+  </div>
+</div>
 
 <!-- API Key Prompt -->
 <div class="apikey-overlay" id="apikeyOverlay">
@@ -681,7 +956,9 @@ let savedCustom = JSON.parse(localStorage.getItem('savedCustom2') || '[]');
 let savedIds    = JSON.parse(localStorage.getItem('savedIds2')    || '["b1","b2","b3","b4","b5","b6","b7","b8"]');
 let groceryChecked = JSON.parse(localStorage.getItem('groceryChecked2') || '{}');
 let grocerySubs    = JSON.parse(localStorage.getItem('grocerySubs2')    || '{}');
-let activeSubKey   = null; // which item has the sub input open
+let recipeSubs     = JSON.parse(localStorage.getItem('recipeSubs')      || '{}');
+let activeSubKey      = null; // grocery list sub
+let activeRecipeSubKey = null; // recipe book sub — 'recipeId||ingKeyLower'
 let currentScreen = 'week';
 let screenHistory = [];
 // Picker state
@@ -700,6 +977,7 @@ function saveState() {
   localStorage.setItem('savedIds2',       JSON.stringify(savedIds));
   localStorage.setItem('groceryChecked2', JSON.stringify(groceryChecked));
   localStorage.setItem('grocerySubs2',    JSON.stringify(grocerySubs));
+  localStorage.setItem('recipeSubs',      JSON.stringify(recipeSubs));
 }
 
 function allSaved() {
@@ -720,6 +998,10 @@ function showScreen(id, push=true) {
 
   const backBtn = document.getElementById('backBtn');
   backBtn.classList.toggle('vis', screenHistory.length > 0);
+
+  // Show FAB on Recipes and Saved screens
+  const fab = document.getElementById('addRecipeFab');
+  fab.classList.toggle('vis', id === 'recipes' || id === 'saved');
 
   const titles = {
     week:'🗓 Weekly Menu', grocery:'🛒 Grocery List',
@@ -1170,10 +1452,16 @@ function saveApiKey() {
   localStorage.setItem('groqApiKey', key);
   document.getElementById('apikeyOverlay').classList.remove('open');
   document.getElementById('apikeyInput').value = '';
-  // Re-run the search that triggered the prompt
+  // Re-run whichever action triggered the prompt
   if (window._pendingAiQuery) {
     pickerSearch('ai');
     window._pendingAiQuery = null;
+  } else if (window._pendingPhotoScan) {
+    window._pendingPhotoScan = null;
+    parseFromPhoto();
+  } else if (window._pendingPasteText) {
+    window._pendingPasteText = null;
+    parseFromPaste();
   }
 }
 
@@ -1255,10 +1543,10 @@ const BOOK_CATS = [
 
 function guessBookCat(r) {
   if (r.mealType) return r.mealType;
-  const n = (r.name + ' ' + (r.time || '')).toLowerCase();
-  if (/dessert|cake|cookie|brownie|pudding|pie|ice cream|muffin|cupcake|sweet/.test(n)) return 'dessert';
-  if (/breakfast|pancake|waffle|oatmeal|egg|omelette|frittata|french toast|granola/.test(n)) return 'breakfast';
-  if (/lunch|sandwich|wrap|salad|soup|quesadilla/.test(n)) return 'lunch';
+  const n = (r.name + ' ' + (r.time || '') + ' ' + (r.category || '')).toLowerCase();
+  if (/dessert|cake|cookie|brownie|pudding|pie|ice.?cream|muffin|cupcake|sweet|tart|fudge|cheesecake|tiramisu|mousse|sorbet|parfait|crumble|cobbler|biscuit|scone/.test(n)) return 'dessert';
+  if (/breakfast|pancake|waffle|oatmeal|porridge|egg|omelette|frittata|french.?toast|granola|bagel|muesli|smoothie bowl/.test(n)) return 'breakfast';
+  if (/lunch|sandwich|wrap|salad|soup|quesadilla|flatbread|blt|club|reuben|panini/.test(n)) return 'lunch';
   return 'dinner';
 }
 
@@ -1289,25 +1577,28 @@ function renderRecipes() {
     else groups.other.push({ r, i });
   });
 
-  // Build spine HTML
+  // Build spine HTML — all categories always visible and expanded
   let spineHtml = '';
   BOOK_CATS.forEach(cat => {
     const items = groups[cat.key];
-    if (!items.length) return;
-    const isOpen = bookOpenCat === cat.key;
-    spineHtml += `<div class="book-cat ${cat.key}${isOpen?' open':''}">
-      <div class="book-cat-tab${isOpen?' active':''}" onclick="toggleBookCat('${cat.key}')">
+    spineHtml += `<div class="book-cat ${cat.key} open">
+      <div class="book-cat-tab active">
         <span class="cat-icon">${cat.icon}</span> ${cat.label}
         <span style="margin-left:auto;font-size:11px;opacity:.8">${items.length}</span>
       </div>
       <div class="book-recipes">`;
-    items.forEach(({ r, i }) => {
-      const isActive = bookActiveId === r.id;
-      spineHtml += `<div class="book-recipe-tab${isActive?' active':''}" data-rid="${r.id}" onclick="showBookDetail(${i})">
-        <div class="rec-dot"></div>
-        <span style="flex:1">${r.name}</span>
-      </div>`;
-    });
+    if (!items.length) {
+      spineHtml += `<div style="padding:10px 14px;font-size:12px;color:#aaa;font-style:italic">No recipes yet</div>`;
+    } else {
+      items.forEach(({ r, i }) => {
+        const isActive = bookActiveId === r.id;
+        spineHtml += `<div class="book-recipe-tab${isActive?' active':''}" data-rid="${r.id}" onclick="showBookDetail(${i})">
+          <div class="rec-dot"></div>
+          <span style="flex:1;line-height:1.3">${r.name}</span>
+          <span class="move-cat-btn" onclick="event.stopPropagation();showMoveCat(${i})" title="Move to different category">⋯</span>
+        </div>`;
+      });
+    }
     spineHtml += `</div></div>`;
   });
 
@@ -1326,8 +1617,47 @@ function renderRecipes() {
     <div class="book-instructions" id="bookInstructions">${activeRecipe ? buildStepsHtml(activeRecipe) : emptySteps}</div>`;
 }
 
-function toggleBookCat(key) {
-  bookOpenCat = (bookOpenCat === key) ? null : key;
+function showMoveCat(i) {
+  const r = (window._recipesList || [])[i];
+  if (!r) return;
+  const current = guessBookCat(r);
+  const options = BOOK_CATS.map(c =>
+    `<button onclick="moveRecipeCat(${i},'${c.key}')" style="
+      display:block;width:100%;padding:10px 14px;text-align:left;
+      background:${c.key===current?'var(--green-light)':'#fff'};
+      border:none;border-bottom:1px solid var(--border);
+      font-size:14px;font-weight:${c.key===current?'800':'500'};
+      cursor:pointer;color:var(--text)">
+      ${c.icon} ${c.label}${c.key===current?' ✓':''}
+    </button>`
+  ).join('');
+  showToast('Pick a category ↓');
+  // Show as a small popup overlay
+  const popup = document.createElement('div');
+  popup.id = 'moveCatPopup';
+  popup.style.cssText = `position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.4)`;
+  popup.innerHTML = `<div style="background:#fff;border-radius:16px;overflow:hidden;width:220px;box-shadow:0 8px 30px rgba(0,0,0,0.2)">
+    <div style="background:var(--green-dark);color:#fff;padding:12px 14px;font-weight:800;font-size:14px">Move to category</div>
+    ${options}
+  </div>`;
+  popup.onclick = e => { if(e.target===popup) popup.remove(); };
+  document.body.appendChild(popup);
+}
+
+function moveRecipeCat(i, cat) {
+  const r = (window._recipesList || [])[i];
+  if (!r) return;
+  // Update in savedCustom
+  const idx = savedCustom.findIndex(s => s.id === r.id || s.name === r.name);
+  if (idx >= 0) {
+    savedCustom[idx].mealType = cat;
+  } else {
+    // Built-in recipe — add to savedCustom with mealType
+    savedCustom.push({ ...r, mealType: cat, source: 'saved' });
+  }
+  bookActiveId = r.id;
+  document.getElementById('moveCatPopup')?.remove();
+  saveState();
   renderRecipes();
 }
 
@@ -1355,22 +1685,86 @@ function showBookDetail(i) {
 }
 
 function buildIngrHtml(r) {
+  const rSubs = recipeSubs[r.id] || {};
   let html = `<div class="book-pane-header">
     <div class="book-pane-label">Ingredients</div>
     <div class="book-pane-recipe-name">${r.name}</div>
     <div class="book-pane-meta">${r.ingredients ? r.ingredients.length + ' items' : ''}${r.time ? ' · ' + r.time : ''}</div>
   </div>`;
   if (r.ingredients && r.ingredients.length) {
-    r.ingredients.forEach(ing => {
+    r.ingredients.forEach((ing, idx) => {
+      const key     = ing.name.toLowerCase().trim();
+      const fullKey = r.id + '||' + key;
+      const sub     = rSubs[key] || '';
+      const isOpen  = activeRecipeSubKey === fullKey;
+      const rIdE    = r.id.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      const keyE    = key.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       html += `<div class="book-ingredient">
-        <span class="book-ing-name">${ing.name}</span>
-        <span class="book-ing-amount">${ing.amount || ''}</span>
+        <div class="book-ing-main">
+          <div>
+            <div class="book-ing-name">${ing.name}</div>
+            ${sub ? `<div class="book-ing-sub-label">↔ ${sub}</div>` : ''}
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+            <span class="book-ing-amount">${ing.amount || ''}</span>
+            <button class="book-sub-btn" onclick="toggleRecipeSubInput('${rIdE}','${keyE}')">
+              ${isOpen ? '✕' : sub ? '✏️' : '+ Sub'}
+            </button>
+          </div>
+        </div>
+        ${isOpen ? `<div class="book-ing-sub-row">
+          <input class="book-sub-input" id="bsi-${idx}" type="text"
+            placeholder="e.g. oat milk instead of dairy…"
+            value="${sub.replace(/"/g,'&quot;')}"
+            onkeydown="if(event.key==='Enter')saveRecipeSub('${rIdE}','${keyE}')">
+          <button class="book-sub-save" onclick="saveRecipeSub('${rIdE}','${keyE}')">✓</button>
+          ${sub ? `<button class="book-sub-clear" onclick="clearRecipeSub('${rIdE}','${keyE}')">✕</button>` : ''}
+        </div>` : ''}
       </div>`;
     });
   } else {
     html += `<p style="padding:16px;color:var(--text-mid)">No ingredients listed.</p>`;
   }
   return html;
+}
+
+// ── RECIPE INGREDIENT SUBSTITUTIONS ──
+function toggleRecipeSubInput(recipeId, ingKey) {
+  const fullKey = recipeId + '||' + ingKey;
+  activeRecipeSubKey = (activeRecipeSubKey === fullKey) ? null : fullKey;
+  const r = allSaved().find(r => r.id === recipeId);
+  if (!r) return;
+  const pane = document.getElementById('bookIngredients');
+  if (pane) {
+    pane.innerHTML = buildIngrHtml(r);
+    if (activeRecipeSubKey) {
+      setTimeout(() => {
+        const inp = pane.querySelector('.book-sub-input');
+        if (inp) { inp.focus(); inp.select(); }
+      }, 50);
+    }
+  }
+}
+
+function saveRecipeSub(recipeId, ingKey) {
+  const inp = document.querySelector('.book-sub-input');
+  const val = inp ? inp.value.trim() : '';
+  if (!recipeSubs[recipeId]) recipeSubs[recipeId] = {};
+  if (val) { recipeSubs[recipeId][ingKey] = val; showToast('Substitution saved ✓'); }
+  else     { delete recipeSubs[recipeId][ingKey]; }
+  activeRecipeSubKey = null;
+  saveState();
+  const r = allSaved().find(r => r.id === recipeId);
+  if (r) { const p = document.getElementById('bookIngredients'); if (p) p.innerHTML = buildIngrHtml(r); }
+}
+
+function clearRecipeSub(recipeId, ingKey) {
+  if (recipeSubs[recipeId]) delete recipeSubs[recipeId][ingKey];
+  activeRecipeSubKey = null;
+  saveState();
+  const r = allSaved().find(r => r.id === recipeId);
+  if (r) { const p = document.getElementById('bookIngredients'); if (p) p.innerHTML = buildIngrHtml(r); }
+  showToast('Substitution removed');
 }
 
 function buildStepsHtml(r) {
@@ -1474,6 +1868,290 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ADD / EDIT CUSTOM RECIPE
+// ══════════════════════════════════════════════════════════════════════════════
+// ── UPLOAD / SCAN RECIPE ──
+let _arPhotoBase64 = null;
+let _arPhotoMime   = null;
+
+function triggerPhotoUpload() {
+  _arPhotoBase64 = null;
+  document.getElementById('arPhotoInput').value = '';
+  document.getElementById('arPhotoInput').click();
+}
+
+function handlePhotoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  _arPhotoMime = file.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = e => {
+    _arPhotoBase64 = e.target.result.split(',')[1]; // strip data:...;base64,
+    const sec = document.getElementById('arImportSection');
+    sec.classList.add('vis');
+    sec.innerHTML = `
+      <img class="ar-photo-preview" src="${e.target.result}" alt="Recipe photo">
+      <div style="font-size:13px;color:var(--text-mid);margin-bottom:6px">
+        AI will read the text in this photo and fill in your recipe.
+      </div>
+      <button class="ar-extract-btn" onclick="parseFromPhoto()">✨ Extract Recipe from Photo</button>`;
+    // hide paste section if open
+    document.getElementById('arParseStatus').textContent = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function togglePasteInput() {
+  const sec = document.getElementById('arImportSection');
+  const isOpen = sec.classList.contains('vis') && sec.querySelector('.ar-paste-area');
+  if (isOpen) { sec.classList.remove('vis'); sec.innerHTML = ''; return; }
+  _arPhotoBase64 = null;
+  sec.classList.add('vis');
+  sec.innerHTML = `
+    <div style="font-size:12px;color:var(--text-mid);margin-bottom:6px;font-weight:600">
+      Paste any recipe — from a website, email, or book — and AI will structure it for you.
+    </div>
+    <textarea class="ar-paste-area" id="arPasteText" placeholder="Paste your recipe here…"></textarea>
+    <button class="ar-extract-btn" onclick="parseFromPaste()">✨ Extract Recipe from Text</button>`;
+  document.getElementById('arParseStatus').textContent = '';
+  setTimeout(() => document.getElementById('arPasteText')?.focus(), 100);
+}
+
+async function parseFromPhoto() {
+  if (!_arPhotoBase64) { showToast('No photo selected'); return; }
+  const apiKey = localStorage.getItem('groqApiKey');
+  if (!apiKey) {
+    window._pendingPhotoScan = true;
+    document.getElementById('apikeyOverlay').classList.add('open');
+    setTimeout(() => document.getElementById('apikeyInput').focus(), 100);
+    return;
+  }
+  await _runRecipeExtraction([{
+    role: 'user',
+    content: [
+      { type: 'text', text: _recipeExtractionPrompt() },
+      { type: 'image_url', image_url: { url: `data:${_arPhotoMime};base64,${_arPhotoBase64}` } }
+    ]
+  }], 'meta-llama/llama-4-scout-17b-16e-instruct');
+}
+
+async function parseFromPaste() {
+  const text = (document.getElementById('arPasteText')?.value || '').trim();
+  if (!text) { showToast('Paste some recipe text first'); return; }
+  const apiKey = localStorage.getItem('groqApiKey');
+  if (!apiKey) {
+    window._pendingPasteText = text;
+    document.getElementById('apikeyOverlay').classList.add('open');
+    setTimeout(() => document.getElementById('apikeyInput').focus(), 100);
+    return;
+  }
+  await _runRecipeExtraction([{
+    role: 'user',
+    content: _recipeExtractionPrompt() + '\n\nRecipe text:\n' + text
+  }], 'llama-3.3-70b-versatile');
+}
+
+function _recipeExtractionPrompt() {
+  return `Extract the recipe from the provided content and return ONLY valid JSON — no markdown, no explanation. Use this exact format:
+{
+  "name": "Recipe Name",
+  "time": "~30 min",
+  "category": "breakfast|lunch|dinner|dessert|other",
+  "emoji": "🍽️",
+  "ingredients": [
+    {"name": "Ingredient", "amount": "quantity + unit", "cat": "Proteins|Produce|Dairy|Pantry|Other"}
+  ],
+  "steps": ["Step 1.", "Step 2."]
+}
+Rules: pick the best emoji for the dish; assign realistic ingredient categories; if steps aren't visible leave as []; category must be one of the five values listed.`;
+}
+
+async function _runRecipeExtraction(messages, model) {
+  const statusEl = document.getElementById('arParseStatus');
+  statusEl.innerHTML = '<span style="display:inline-block;animation:spin 0.8s linear infinite;border:3px solid var(--green-light);border-top-color:var(--green-mid);border-radius:50%;width:16px;height:16px;vertical-align:middle;margin-right:6px"></span> Reading recipe…';
+  const apiKey = localStorage.getItem('groqApiKey');
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({ model, messages, temperature: 0.2 })
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      statusEl.textContent = `Error ${res.status}: ${t.slice(0,120)}`;
+      return;
+    }
+    const data   = await res.json();
+    const raw    = (data.choices?.[0]?.message?.content || '').replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(raw);
+    applyParsedRecipe(parsed);
+    statusEl.textContent = '✓ Recipe extracted! Review and save below.';
+    // Scroll to name field
+    document.getElementById('arName').scrollIntoView({ behavior:'smooth', block:'center' });
+  } catch(e) {
+    statusEl.textContent = `Could not extract: ${e.message}`;
+  }
+}
+
+function applyParsedRecipe(p) {
+  if (p.name)     document.getElementById('arName').value = p.name;
+  if (p.time)     document.getElementById('arTime').value = p.time;
+  if (p.category) document.getElementById('arCat').value  = p.category;
+
+  // Emoji
+  if (p.emoji) {
+    arSelectedEmoji = p.emoji;
+    document.querySelectorAll('.emoji-opt').forEach(el => {
+      el.classList.toggle('selected', el.textContent === p.emoji);
+    });
+    // If emoji not in grid, add it
+    if (!document.querySelector('.emoji-opt.selected')) {
+      const grid = document.getElementById('arEmojiGrid');
+      if (grid) {
+        const span = document.createElement('span');
+        span.className = 'emoji-opt selected';
+        span.textContent = p.emoji;
+        span.onclick = function() { selectEmoji(this, p.emoji); };
+        grid.prepend(span);
+      }
+    }
+  }
+
+  // Ingredients
+  if (p.ingredients?.length) {
+    document.getElementById('arIngredients').innerHTML = '';
+    p.ingredients.forEach(ing => addIngredientRow(ing.name || '', ing.amount || '', ing.cat || 'Pantry'));
+  }
+
+  // Steps
+  if (p.steps?.length) {
+    document.getElementById('arSteps').innerHTML = '';
+    p.steps.forEach(s => addStepRow(s));
+  }
+}
+
+const RECIPE_EMOJIS = ['🍽️','🥘','🍲','🥗','🍜','🍝','🍛','🍣','🍱','🥩','🍗','🐟',
+  '🥞','🥚','🥑','🍳','🥪','🌮','🌯','🍔','🍕','🥦','🥕','🧆','🍞','🍰','🎂','🍪',
+  '🥣','🫕','🥙','🫔','🧇','🥓','🧁','🍩','✨'];
+let arSelectedEmoji = '🍽️';
+
+function openAddRecipe(prefillRecipe) {
+  arSelectedEmoji = prefillRecipe?.emoji || '🍽️';
+
+  // Populate emoji grid
+  const grid = document.getElementById('arEmojiGrid');
+  grid.innerHTML = RECIPE_EMOJIS.map(e =>
+    `<span class="emoji-opt${e===arSelectedEmoji?' selected':''}" onclick="selectEmoji(this,'${e}')">${e}</span>`
+  ).join('');
+
+  // Reset fields
+  document.getElementById('arName').value  = prefillRecipe?.name  || '';
+  document.getElementById('arTime').value  = prefillRecipe?.time  || '';
+  document.getElementById('arCat').value   = prefillRecipe?.mealType || 'dinner';
+
+  // Ingredients
+  const ingWrap = document.getElementById('arIngredients');
+  ingWrap.innerHTML = '';
+  const ings = prefillRecipe?.ingredients?.length ? prefillRecipe.ingredients : [
+    {name:'', amount:'', cat:'Produce'},
+    {name:'', amount:'', cat:'Proteins'},
+  ];
+  ings.forEach(ing => addIngredientRow(ing.name, ing.amount, ing.cat));
+
+  // Steps
+  const stepWrap = document.getElementById('arSteps');
+  stepWrap.innerHTML = '';
+  const steps = prefillRecipe?.steps?.length ? prefillRecipe.steps : ['', ''];
+  steps.forEach(s => addStepRow(s));
+
+  document.getElementById('addRecipeOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('arName').focus(), 300);
+}
+
+function closeAddRecipe(e) {
+  if (e && e.target !== document.getElementById('addRecipeOverlay')) return;
+  document.getElementById('addRecipeOverlay').classList.remove('open');
+}
+
+function selectEmoji(el, emoji) {
+  arSelectedEmoji = emoji;
+  document.querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function addIngredientRow(name='', amount='', cat='Produce') {
+  const wrap = document.getElementById('arIngredients');
+  const row  = document.createElement('div');
+  row.className = 'ar-row';
+  row.innerHTML = `
+    <input class="ar-ing-name"   type="text" placeholder="Ingredient" value="${name.replace(/"/g,'&quot;')}" autocomplete="off">
+    <input class="ar-ing-amount" type="text" placeholder="Amount"     value="${amount.replace(/"/g,'&quot;')}" autocomplete="off">
+    <select class="ar-ing-cat">
+      <option value="Produce"  ${cat==='Produce'  ?'selected':''}>🥦 Veg</option>
+      <option value="Proteins" ${cat==='Proteins' ?'selected':''}>🥩 Prot</option>
+      <option value="Dairy"    ${cat==='Dairy'    ?'selected':''}>🧀 Dairy</option>
+      <option value="Pantry"   ${cat==='Pantry'   ?'selected':''}>🌾 Pantry</option>
+      <option value="Other"    ${cat==='Other'    ?'selected':''}>📦 Other</option>
+    </select>
+    <button class="ar-del-btn" onclick="this.closest('.ar-row').remove()">✕</button>`;
+  wrap.appendChild(row);
+}
+
+function addStepRow(text='') {
+  const wrap = document.getElementById('arSteps');
+  const idx  = wrap.children.length + 1;
+  const row  = document.createElement('div');
+  row.className = 'ar-row';
+  row.innerHTML = `
+    <textarea class="ar-step-input" placeholder="Step ${idx}…" autocomplete="off">${text}</textarea>
+    <button class="ar-del-btn" onclick="this.closest('.ar-row').remove()">✕</button>`;
+  wrap.appendChild(row);
+}
+
+function saveCustomRecipe() {
+  const name = document.getElementById('arName').value.trim();
+  if (!name) { showToast('Please enter a recipe name'); document.getElementById('arName').focus(); return; }
+
+  // Collect ingredients
+  const ingredients = [];
+  document.querySelectorAll('#arIngredients .ar-row').forEach(row => {
+    const n = row.querySelector('.ar-ing-name')  .value.trim();
+    const a = row.querySelector('.ar-ing-amount').value.trim();
+    const c = row.querySelector('.ar-ing-cat')   .value;
+    if (n) ingredients.push({ name:n, amount:a, cat:c });
+  });
+
+  // Collect steps
+  const steps = [];
+  document.querySelectorAll('#arSteps .ar-step-input').forEach(ta => {
+    const s = ta.value.trim();
+    if (s) steps.push(s);
+  });
+
+  const recipe = {
+    id:       'custom-' + Date.now(),
+    name,
+    emoji:    arSelectedEmoji,
+    time:     document.getElementById('arTime').value.trim() || null,
+    mealType: document.getElementById('arCat').value,
+    source:   'saved',
+    thumb:    null,
+    ingredients,
+    steps,
+  };
+
+  savedCustom.push(recipe);
+  savedIds.push(recipe.id);
+  saveState();
+  document.getElementById('addRecipeOverlay').classList.remove('open');
+  showToast(`"${name}" saved! ✓`);
+
+  // Refresh whichever screen is visible
+  if (currentScreen === 'recipes') renderRecipes();
+  else if (currentScreen === 'saved') renderSaved();
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
