@@ -557,8 +557,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
     </div>
     <div class="picker-btns">
       <button class="pbtn pbtn-saved"    onclick="pickerSearch('saved')">⭐ Saved</button>
-      <button class="pbtn pbtn-internet" onclick="pickerSearch('internet')">🌐 Internet</button>
-      <button class="pbtn pbtn-ai"       onclick="pickerSearch('ai')">✨ AI</button>
+      <button class="pbtn pbtn-ai"       onclick="pickerSearch('ai')">✨ AI Suggestions</button>
     </div>
     <div class="skip-option" onclick="skipMeal()">
       <span style="font-size:22px">⏭</span>
@@ -921,20 +920,19 @@ async function pickerSearch(mode) {
     }
     el.innerHTML = `<div class="loading"><div class="spinner"></div><p>✨ AI is generating "${q}"…</p></div>`;
     try {
-      const prompt = `You are a recipe assistant. Return ONLY valid JSON (no markdown, no explanation) for a recipe called "${q}".
+      const prompt = `You are a recipe assistant. Return ONLY valid JSON (no markdown, no explanation) — an array of exactly 3 different recipe variations inspired by "${q}".
 Format:
-{
-  "name": "Recipe Name",
-  "time": "~30 min",
-  "ingredients": [
-    {"name": "Ingredient name", "amount": "quantity + unit", "cat": "Proteins|Produce|Dairy|Pantry|Other"}
-  ],
-  "steps": [
-    "Step 1 instruction text.",
-    "Step 2 instruction text."
-  ]
-}
-Rules: 8–14 ingredients, realistic amounts, correct category, 5–8 clear cooking steps.`;
+[
+  {
+    "name": "Recipe Name",
+    "time": "~30 min",
+    "ingredients": [
+      {"name": "Ingredient name", "amount": "quantity + unit", "cat": "Proteins|Produce|Dairy|Pantry|Other"}
+    ],
+    "steps": ["Step 1.", "Step 2."]
+  }
+]
+Rules: 3 distinct variations (e.g. different protein, cuisine style, or cooking method), 8–12 ingredients each, realistic amounts, correct categories, 5–8 clear steps each.`;
 
       const res = await fetch(
         'https://api.groq.com/openai/v1/chat/completions',
@@ -959,51 +957,39 @@ Rules: 8–14 ingredients, realistic amounts, correct category, 5–8 clear cook
       const data = await res.json();
       const text = data.choices?.[0]?.message?.content || '';
       const json = text.replace(/```json|```/g,'').trim();
-      const r = JSON.parse(json);
-      const recipe = {
-        id: 'ai-' + Date.now(),
+      const parsed = JSON.parse(json);
+      const arr = Array.isArray(parsed) ? parsed : [parsed];
+      const recipes = arr.map((r, i) => ({
+        id: 'ai-' + Date.now() + '-' + i,
         name: r.name || toTitle(q),
         emoji: '✨', time: r.time || '~30 min',
         source: 'ai', thumb: null,
-        ingredients: (r.ingredients || []).map(i => ({
-          name: i.name, amount: i.amount, cat: i.cat || guessCat(i.name)
+        ingredients: (r.ingredients || []).map(ing => ({
+          name: ing.name, amount: ing.amount, cat: ing.cat || guessCat(ing.name)
         })),
         steps: r.steps || []
-      };
-      renderPickerResults([recipe], 'ai', q);
+      }));
+      renderPickerResults(recipes, 'ai', q);
     } catch(e) {
       el.innerHTML = `<div class="empty-state"><div class="ei">😔</div><h3>AI unavailable</h3><p style="font-size:11px;word-break:break-all">${e.message}</p></div>`;
     }
     return;
   }
 
-  if (mode === 'internet') {
-    el.innerHTML = `<div class="loading"><div class="spinner"></div><p>🌐 Searching for "${q}"…</p></div>`;
-    try {
-      const res  = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(q)}`);
-      const data = await res.json();
-      const meals = (data.meals || []).map(parseMealDB);
-      renderPickerResults(meals, 'internet', q);
-    } catch(e) {
-      el.innerHTML = `<div class="empty-state"><div class="ei">😔</div><h3>Internet search failed</h3><p style="font-size:11px;word-break:break-all">${e.message}</p></div>`;
-    }
-  }
 }
 
 function renderPickerResults(results, mode, q) {
   const el = document.getElementById('pickerResults');
   if (!results.length) {
-    el.innerHTML = `<div class="empty-state"><div class="ei">🔍</div><h3>No results for "${q||'your search'}"</h3><p>Try a different name or use ✨ AI.</p></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="ei">🔍</div><h3>No results for "${q||'your search'}"</h3><p>Try a different name or use ✨ AI Suggestions.</p></div>`;
     return;
   }
   const srcTag = mode==='saved' ? '<span class="src-tag src-s">⭐ Saved</span>'
-               : mode==='internet' ? '<span class="src-tag src-i">🌐 Internet</span>'
                : '<span class="src-tag src-a">✨ AI</span>';
-  el.innerHTML = results.map((r,i) => {
+  let html = results.map((r,i) => {
     const imgHtml = r.thumb
       ? `<img class="pr-thumb" src="${r.thumb}" alt="${r.name}" loading="lazy" onerror="this.style.display='none'">`
       : `<div class="pr-emoji">${r.emoji||'🍽️'}</div>`;
-    const safe = JSON.stringify(r).replace(/'/g,"&#39;").replace(/"/g,'&quot;');
     return `<div class="pr-item" onclick="selectFromPicker(${i})">
       ${imgHtml}
       <div style="flex:1">
@@ -1013,7 +999,16 @@ function renderPickerResults(results, mode, q) {
       </div>
     </div>`;
   }).join('');
-  // Store results for click handler
+
+  if (mode === 'ai' && q) {
+    html += `<div style="padding:12px 0 4px">
+      <button onclick="pickerSearch('ai')" style="width:100%;padding:12px;background:var(--green-light);color:var(--green-dark);border:2px dashed var(--green-mid);border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">
+        🔄 Show me different recipes for "${q}"
+      </button>
+    </div>`;
+  }
+
+  el.innerHTML = html;
   window._pickerCache = results;
 }
 
